@@ -23,5 +23,8 @@ A web-based Machine Learning project that predicts student exam scores based on 
 - Input: 9 hours
 - Output: 91.13/100
 
+## 📸 Project Preview
+![App Screenshot](screenshot.png)
+
 ## 👨‍💻 Author
 Jeevan Sahith Reddy
