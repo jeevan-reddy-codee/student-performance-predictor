@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Score Predictor</title>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f4f3f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 3rem 1rem;
+      color: #1a1a1a;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 20px;
+      padding: 2rem 2.25rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+
+    h1 { font-size: 21px; font-weight: 600; margin-bottom: 5px; }
+
+    .subtitle {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    .ml-info {
+      font-size: 12px;
+      color: #7F77DD;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 11px 14px;
+      font-size: 15px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .slider-val {
+      font-weight: 600;
+      min-width: 35px;
+    }
+
+    /* 🎨 UPDATED SLIDER */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 6px;
+      background: #dddaf6;
+      border-radius: 5px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #534AB7;
+      border: 3px solid #fff;
+      margin-top: -6px;
+      box-shadow: 0 0 0 1.5px #534AB7;
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      background: #534AB7;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      background: #534AB7;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .result-box {
+      margin-top: 1.5rem;
+      display: none;
+    }
+
+    .visible {
+      display: block;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+      margin-top: 1.5rem;
+      border-top: 1px solid rgba(0,0,0,0.05);
+      padding-top: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <h1>Student Performance Predictor</h1>
+
+  <p class="subtitle">Enter your study hours to see your predicted exam score.</p>
+  <p class="ml-info">Powered by Linear Regression (Machine Learning Model)</p>
+
+  <input type="number" id="hoursInput" placeholder="Enter study hours" />
+
+  <div class="slider-row">
+    <input type="range" id="hoursSlider" min="0" max="24" step="0.5" value="4">
+    <span class="slider-val" id="sliderVal">4h</span>
+  </div>
+
+  <button class="btn" onclick="predict()">Predict Score</button>
+
+  <div class="result-box" id="resultBox">
+    <h2 id="resultScore"></h2>
+    <p id="resultGrade"></p>
+  </div>
+
+  <p class="footer">Developed by Jeevan • AIML Dept</p>
+
+</div>
+
+<script>
+const slider = document.getElementById('hoursSlider');
+const input = document.getElementById('hoursInput');
+const sliderVal = document.getElementById('sliderVal');
+
+// sync slider → input + color fill
+slider.addEventListener('input', () => {
+  sliderVal.textContent = slider.value + 'h';
+  input.value = slider.value;
+
+  let percent = (slider.value / 24) * 100;
+  slider.style.background =
+    `linear-gradient(to right, #534AB7 ${percent}%, #dddaf6 ${percent}%)`;
+});
+
+// sync input → slider
+input.addEventListener('input', () => {
+  let v = parseFloat(input.value);
+  if (!isNaN(v)) {
+    v = Math.min(24, Math.max(0, v));
+    slider.value = v;
+    sliderVal.textContent = v + 'h';
+  }
+});
+
+// 🔥 REAL ML PREDICTION
+function predict() {
+  let hours = parseFloat(input.value || slider.value);
+  if (isNaN(hours)) hours = 0;
+
+  fetch('/predict', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ hours: hours })
+  })
+  .then(res => res.json())
+  .then(data => {
+    const score = data.prediction;
+
+    document.getElementById('resultScore').innerText = score + "/100";
+
+    let grade = "";
+    if (score >= 90) grade = "A";
+    else if (score >= 75) grade = "B";
+    else if (score >= 50) grade = "C";
+    else grade = "F";
+
+    document.getElementById('resultGrade').innerText = "Grade: " + grade;
+
+    document.getElementById('resultBox').classList.add('visible');
+  });
+}
+</script>
+
+</body>
+</html>
